@@ -49,6 +49,10 @@ Content-Length: 144
 ``` env
 ACCESS_TOKEN_SECRET='your_secret'
 REFRESH_TOKEN_SECRET='your_different_secret'
+DB_URI='mongodb_uri'
+DB_NAME='db_name'
+DB_USER='db_user'
+DB_PASS='db_pass'
 ```
 
 Run `npm run devStart`
