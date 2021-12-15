@@ -1,19 +1,13 @@
 {
   "name": "jwt_demo",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "start": "node api/index.js",
-    "devStart": "nodemon api/index.js",
+    "devStart": "nodemon dev-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vercel/node": "^1.12.1",
     "dotenv": "^10.0.0",
     "fastify": "^3.25.0",
     "jsonwebtoken": "^8.5.1"

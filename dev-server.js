@@ -11,7 +11,7 @@ let refreshTokens = [];
 app.decorate('auth', authMiddleware).after(() => {
     app.route({
         method: 'GET', 
-        url: '/', 
+        url: '/main', 
         preHandler: [app.auth], 
         handler: (request, reply) => {
             reply.send({
@@ -45,7 +45,7 @@ app.post('/login', async (request, reply) => {
     });
 });
 
-app.post('/refresh', async (request, reply) => {
+app.post('/token', async (request, reply) => {
     const token = request.body.token;
     if (token == null) reply.code(400).send({"error": "Token is required"});
     if (!refreshTokens.find((existedToken) => existedToken === token)) reply.code(403).send({"error": "Invalid token"});
@@ -61,7 +61,7 @@ app.post('/refresh', async (request, reply) => {
     });
 });
 
-app.delete('/refresh_token', async (request, reply) => {
+app.delete('/token', async (request, reply) => {
     const token = request.body.token;
     if (token == null) reply.code(400).send({"error": "Token is required"});
     if (!refreshTokens.find((existedToken) => existedToken === token)) reply.code(403).send({"error": "Invalid token"});
