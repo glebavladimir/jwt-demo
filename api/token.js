@@ -1,20 +1,35 @@
 import env from 'dotenv';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+
+import RefreshToken from '../model/RefreshToken.js'
 
 env.config();
 
-export default function handler(request, reply) {
+async function handler(request, reply) {
+    await mongoose.connect(
+        process.env.DB_URI, 
+        {
+            dbName: process.env.DB_NAME,
+            user: process.env.DB_USER,
+            pass: process.env.DB_PASS,
+            retryWrites: true,
+            w: "majority",
+        }
+    );
+    console.info('[db] Mongoose is successfully connected')
+
     if (request.method === 'POST') {
         const token = request.body.token;
         if (token == null) {
             reply.status(400).send({ message: "Token is required" })
             return
         }
-        // TODO: refactor to mongoDB
-        // if (!refreshTokens.find((existedToken) => existedToken === token)) {
-        //     reply.status(403).send({ message: "Invalid token" })
-        //     return
-        // }
+        const refreshToken = await RefreshToken.findOne({token: token}).exec()
+        if (!refreshToken || !refreshToken.token) {
+            reply.code(403).send({"error": "Invalid token"})
+            return
+        }
 
         jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (error, jwtUser) => {
             if (error) {
@@ -36,16 +51,18 @@ export default function handler(request, reply) {
             reply.status(400).send({ message: "Token is required" })
             return
         }
-        // TODO: refactor to mongoDB
-        // if (!refreshTokens.find((existedToken) => existedToken === token)) {
-        //     reply.status(403).send({ message: "Invalid token" })
-        //     return
-        // }
 
-        // refreshTokens = refreshTokens.filter((existedToken) => existedToken !== token);
+        const refreshToken = await RefreshToken.findOneAndDelete({ token: token }).exec();
+        if (!refreshToken || !refreshToken.token) {
+            reply.status(403).send({"error": "Invalid token"})
+            return
+        }
+        
         reply.status(204)
     } else {
-        reply.status(405).send({ message: 'Only POST requests allowed' })
+        reply.status(405).send({ message: 'Only POST and DELETE requests allowed' })
         return
     }
 }
+
+export default handler

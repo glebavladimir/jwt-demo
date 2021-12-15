@@ -1,12 +1,25 @@
 import fastify from 'fastify';
 import env from 'dotenv';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 env.config();
 
 const app = fastify({logger: true});
-const users = [{username: "admin", password: "admin"}];
-let refreshTokens = [];
+
+await mongoose.connect(
+    process.env.DB_URI, 
+    {
+        dbName: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        pass: process.env.DB_PASS,
+        retryWrites: true,
+        w: "majority"
+    }
+);
+console.info('[db] Mongoose is successfully connected')
+import User from './model/User.js'
+import RefreshToken from './model/RefreshToken.js'
 
 app.decorate('auth', authMiddleware).after(() => {
     app.route({
@@ -27,7 +40,8 @@ app.post('/login', async (request, reply) => {
     const password = request.body.password;
     if (password == null) reply.code(400).send({"error": "Password is required"});
     
-    if (!users.find((user) => user.username === username && user.password === password)) {
+    const fetchedUser = await User.find({username: username, password: password}).exec()
+    if (!fetchedUser.length) {
         reply.code(403).send({"error": "Authentication failed"});
     }
 
@@ -37,7 +51,7 @@ app.post('/login', async (request, reply) => {
     const accessToken = generateAccessToken(jwtUser);
     const refreshToken = jwt.sign(jwtUser, process.env.REFRESH_TOKEN_SECRET);
 
-    refreshTokens.push(refreshToken);
+    await RefreshToken.create({token: refreshToken})
     
     reply.send({
         accessToken: accessToken,
@@ -48,7 +62,8 @@ app.post('/login', async (request, reply) => {
 app.post('/token', async (request, reply) => {
     const token = request.body.token;
     if (token == null) reply.code(400).send({"error": "Token is required"});
-    if (!refreshTokens.find((existedToken) => existedToken === token)) reply.code(403).send({"error": "Invalid token"});
+    const refreshToken = await RefreshToken.findOne({token: token}).exec()
+    if (!refreshToken || !refreshToken.token) reply.code(403).send({"error": "Invalid token"});
 
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (error, jwtUser) => {
         if (error) reply.code(403).send(error);
@@ -63,10 +78,10 @@ app.post('/token', async (request, reply) => {
 
 app.delete('/token', async (request, reply) => {
     const token = request.body.token;
-    if (token == null) reply.code(400).send({"error": "Token is required"});
-    if (!refreshTokens.find((existedToken) => existedToken === token)) reply.code(403).send({"error": "Invalid token"});
+    const refreshToken = await RefreshToken.findOne({token: token}).exec()
+    if (!refreshToken || !refreshToken.token) reply.code(403).send({"error": "Invalid token"});
 
-    refreshTokens = refreshTokens.filter((existedToken) => existedToken !== token);
+    RefreshToken.findByIdAndRemove(refreshToken._id).exec();
     reply.code(204)
 });
 
