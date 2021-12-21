@@ -10,7 +10,7 @@ export default function handler(request, reply) {
     }
 
     const authHeader = request.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader?.split(' ')[1];
 
     if (token == null) {
         reply.status(403).send({ message: "Auth token is required" })

@@ -102,7 +102,7 @@ function authMiddleware(request, reply, done) {
 
 function getAuthToken(request) {
     const authHeader = request.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader?.split(' ')[1];
 
     return token;
 }
