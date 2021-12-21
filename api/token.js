@@ -47,7 +47,7 @@ async function handler(request, reply) {
         });
     } else if (request.method === 'DELETE') {
         const token = request.body.token;
-        if (token == null) {
+        if (token === null) {
             reply.status(400).send({ message: "Token is required" })
             return
         }

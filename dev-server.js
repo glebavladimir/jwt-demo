@@ -36,9 +36,9 @@ app.decorate('auth', authMiddleware).after(() => {
 
 app.post('/login', async (request, reply) => {
     const username = request.body.username;
-    if (username == null) reply.code(400).send({"error": "Username is required"});
+    if (username === null) reply.code(400).send({"error": "Username is required"});
     const password = request.body.password;
-    if (password == null) reply.code(400).send({"error": "Password is required"});
+    if (password === null) reply.code(400).send({"error": "Password is required"});
     
     const fetchedUser = await User.find({username: username, password: password}).exec()
     if (!fetchedUser.length) {
@@ -61,7 +61,7 @@ app.post('/login', async (request, reply) => {
 
 app.post('/token', async (request, reply) => {
     const token = request.body.token;
-    if (token == null) reply.code(400).send({"error": "Token is required"});
+    if (token === null) reply.code(400).send({"error": "Token is required"});
     const refreshToken = await RefreshToken.findOne({token: token}).exec()
     if (!refreshToken || !refreshToken.token) reply.code(403).send({"error": "Invalid token"});
 
@@ -91,7 +91,7 @@ function generateAccessToken(jwtUser) {
 
 function authMiddleware(request, reply, done) {
     const token = getAuthToken(request);
-    if (token == null) reply.code(403).send();
+    if (token === null) reply.code(403).send();
     
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, user) => {
         if (error) reply.code(403).send(error);

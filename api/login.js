@@ -25,12 +25,12 @@ async function handler(request, reply) {
         return
     }
     const username = request.body.username
-    if (username == null) {
+    if (username === null) {
         reply.status(400).send({ message: "Username is required" })
         return
     }
     const password = request.body.password
-    if (password == null) {
+    if (password === null) {
         reply.status(400).send({ message: "Password is required" })
         return
     }
